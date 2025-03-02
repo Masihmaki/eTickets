@@ -1,19 +1,41 @@
 ﻿using eTickets.Data;
+using eTickets.Data.Services;
+using eTickets.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace eTickets.Controllers
 {
     public class ActorsController : Controller
     {
-        private readonly AppDbContext _context;
-        public ActorsController(AppDbContext context)
+        private readonly IActorsService _service;
+
+        public ActorsController(IActorsService service)
         {
-            _context = context;
+            _service = service;
         }
-        public IActionResult Index()
+
+        public async Task<IActionResult> Index()
         {
-            var data = _context.Actors.ToList();
+            var data = await _service.GetAll();
             return View(data);
+        }
+
+        //GET: Actors/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([Bind("FullName,ProfilePicture,Bio")] Actor actor)
+        {
+            if(!ModelState.IsValid)
+            {
+                return View(actor);
+            }
+            _service.Add(actor);
+            return RedirectToAction(nameof(Index));
         }
     }
 }
